@@ -1,76 +1,59 @@
-# Hacker News "Who is Hiring?" HTML Content
+# HTMLs Folder
 
-This directory contains the raw HTML content of all "Who is Hiring?" threads from Hacker News, spanning from January 2012 to December 2024.
+This folder contains the HTML content scraped from Hacker News "Who is Hiring" posts.
 
 ## Contents
 
-- `hiring_thread_[Month]_[Year].html` - Individual HTML files for each thread
-- `all_threads_combined.json` - Combined JSON file containing all threads
-- `extract_html_content.py` - Script used to extract and process the HTML content
+- `html_content.json`: Contains the raw HTML content of Hacker News "Who is Hiring" posts, along with metadata such as URLs and timestamps.
+- `html_save.log`: Log file containing information about the HTML scraping process, including success/failure status and any errors encountered.
+- `save_html_content.py`: Script used to fetch and save the HTML content from Hacker News.
 
-## File Details
+## URLs Being Scraped
 
-### Individual HTML Files
-- Format: `hiring_thread_[Month]_[Year].html`
-- Size: Varies from ~1MB to ~2.5MB per file
-- Content: Raw HTML of the entire thread page
-- Encoding: UTF-8
-- Total Files: 163 (one for each month from 2012-2024)
+The following URLs are being scraped for "Who is Hiring" posts:
 
-### Combined JSON File
-- Name: `all_threads_combined.json`
-- Size: ~238MB
-- Format: Array of objects with the following structure:
-  ```json
-  {
-    "month": "January",
-    "year": "2012",
-    "filename": "hiring_thread_January_2012.html",
-    "content": "<html>...</html>"
-  }
-  ```
+1. https://news.ycombinator.com/submitted?id=whoishiring
+2. https://news.ycombinator.com/submitted?id=whoishiring&next=39562986&n=31
+3. https://news.ycombinator.com/submitted?id=whoishiring&next=35773707&n=61
+4. https://news.ycombinator.com/submitted?id=whoishiring&next=31947297&n=91
+5. https://news.ycombinator.com/submitted?id=whoishiring&next=28380661&n=121
+6. https://news.ycombinator.com/submitted?id=whoishiring&next=24969524&n=151
+7. https://news.ycombinator.com/submitted?id=whoishiring&next=22225313&n=181
+8. https://news.ycombinator.com/submitted?id=whoishiring&next=19543939&n=211
+9. https://news.ycombinator.com/submitted?id=whoishiring&next=17205866&n=241
+10. https://news.ycombinator.com/submitted?id=whoishiring&next=14901314&n=271
+11. https://news.ycombinator.com/submitted?id=whoishiring&next=12627853&n=301
+12. https://news.ycombinator.com/submitted?id=whoishiring&next=10655741&n=331
+13. https://news.ycombinator.com/submitted?id=whoishiring&next=8822808&n=361
+14. https://news.ycombinator.com/submitted?id=whoishiring&next=7162197&n=391
+15. https://news.ycombinator.com/submitted?id=whoishiring&next=4857717&n=421
+16. https://news.ycombinator.com/submitted?id=whoishiring&next=2949790&n=451
 
-## Extraction Process
+## Data Structure
 
-The HTML content was extracted using `extract_html_content.py`, which:
+The `html_content.json` file contains an array of objects with the following structure:
+```json
+{
+    "url": "https://news.ycombinator.com/...",
+    "html": "<raw HTML content>",
+    "timestamp": "ISO format timestamp",
+    "error": "Error message (if any)"
+}
+```
 
-1. Loads thread URLs from `../URLs/all_hiring_threads.json`
-2. For each thread:
-   - Fetches the HTML content using a custom User-Agent
-   - Saves the content to an individual HTML file
-   - Includes a 1-second delay between requests
-3. Combines all HTML files into a single JSON file
-4. Saves the extraction script in this directory
+## Usage
 
-## Usage Notes
+The HTML content in this folder is used as the source data for extracting job postings from Hacker News. The content is saved in JSON format for easy processing and analysis.
 
-- The HTML files contain the complete thread content, including all comments
-- Files are named consistently for easy reference
-- The combined JSON file makes it easy to process all threads programmatically
-- All content is saved with UTF-8 encoding to handle special characters
+## Logging
 
-## Technical Details
+The `html_save.log` file tracks:
+- Success/failure of each HTML fetch
+- Timestamps of operations
+- Error messages and retry attempts
+- Overall progress of the scraping process
 
-- Extraction Script: Python 3.x
-- Required Libraries:
-  - requests
-  - beautifulsoup4
-  - urllib3
-- User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+## Related Files
 
-## Data Quality
-
-- All threads from 2012-2024 are included
-- Some threads may have missing or incomplete content due to:
-  - Server errors during extraction
-  - Deleted or removed content
-  - Rate limiting restrictions
-
-## Future Analysis
-
-This data can be used for:
-- Job posting analysis
-- Technology trend tracking
-- Company hiring pattern analysis
-- Geographic distribution of job opportunities
-- Salary and benefit trend analysis 
+- `URLs/hiring_urls.json`: Contains the list of URLs that were scraped
+- `URLs/hiring_urls.log`: Contains logs from the URL extraction process 
