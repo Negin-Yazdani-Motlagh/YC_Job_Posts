@@ -1,64 +1,43 @@
-# Hacker News Hiring Threads Scraper
+# URLs Folder
 
-This project contains a Python script that scrapes and analyzes the monthly "Who is hiring?" threads from Hacker News.
+This folder contains scraped job posting URLs from Hacker News "Who is Hiring" threads.
 
-## Overview
+## Contents
 
-The scraper collects data from Hacker News' monthly hiring threads, which are posted by the user "whoishiring". It extracts information about each thread including:
-- Title
-- URL
-- Month
-- Year
+- `All_URLs.txt`: Contains all unique job posting URLs collected from Hacker News
+- `hacker_news_urls.txt`: Alternative collection of job posting URLs
 
-## Features
+## Purpose
 
-- Fetches all hiring threads from Hacker News API
-- Extracts month and year information from thread titles
-- Saves results to a JSON file
-- Provides statistics about the collected threads
-- Identifies missing months in the data
-- Includes error handling and rate limiting
+The URLs in these files are collected from Hacker News' monthly "Who is Hiring" threads. These threads are a popular source for tech job postings, particularly for startups and tech companies.
 
-## Requirements
+## How to Use
 
-- Python 3.x
-- Required Python packages:
-  - requests
-  - json
-  - datetime
-  - time
-  - re
+1. Each URL in the files points to a specific job posting on Hacker News
+2. URLs are sorted alphabetically for easy reference
+3. Each URL is on a new line
+4. URLs follow the format: `https://news.ycombinator.com/item?id=XXXXX`
 
-## Usage
+## Data Collection
 
-1. Run the script:
-```bash
-python scrape_hiring_threads.py
-```
-
-2. The script will:
-   - Fetch all hiring threads from Hacker News
-   - Save them to `all_hiring_threads.json`
-   - Print statistics about the collected threads
-   - Show the most recent threads
-
-## Output
-
-The script generates a JSON file (`all_hiring_threads.json`) containing an array of thread objects, each with:
-- `title`: The thread title
-- `url`: The URL to the thread
-- `month`: The month the thread was posted
-- `year`: The year the thread was posted
-
-## Statistics
-
-The script provides the following statistics:
-- Total number of threads found
-- Number of threads per year
-- Identification of years with missing months
+The URLs are collected using automated web scraping scripts that:
+- Navigate through Hacker News "Who is Hiring" threads
+- Extract unique job posting URLs
+- Filter for relevant job-related content
+- Save the results to text files
 
 ## Notes
 
-- The script includes a small delay (0.1 seconds) between API requests to be polite to the Hacker News API
-- Threads from 2011 and 2025 are skipped
-- The script handles various error cases and continues processing even if some threads fail to load 
+- URLs are collected periodically and may not represent the most current job postings
+- Some URLs may no longer be active
+- The collection includes various types of job-related posts:
+  - "Who is Hiring" posts
+  - "Freelancer Seeking" posts
+  - "Who Wants to be Hired" posts
+
+## Maintenance
+
+The URLs are automatically collected and updated by the scraping scripts. To update the collection:
+1. Run the scraping script
+2. New URLs will be added to the existing collection
+3. Duplicate URLs are automatically filtered out 
