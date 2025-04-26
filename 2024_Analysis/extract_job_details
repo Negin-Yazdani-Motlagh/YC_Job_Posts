@@ -1,0 +1,168 @@
+import json
+import re
+import pandas as pd
+from pathlib import Path
+
+def extract_job_details():
+    # Read the 2024 job posts
+    with open("2024_Analysis/2024_job_posts.json", 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    # Initialize lists to store extracted information
+    salary_ranges = []
+    experience_levels = []
+    locations = []
+    work_types = []
+    role_types = []
+    
+    # Regular expressions for extracting information
+    patterns = {
+        'salary': r'\$(\d{2,3}(?:,\d{3})*(?:-\d{2,3}(?:,\d{3})*)?(?:k|K)?)',
+        'experience': r'(?:senior|junior|mid-level|entry-level|experienced|lead|principal|staff)',
+        'role_type': r'(?:full-time|part-time|contract|freelance|internship)',
+        'work_arrangement': r'(?:remote|hybrid|on-site|in-office)',
+        'city_state': r'([A-Z][a-z]+(?: [A-Z][a-z]+)*),?\s+([A-Z]{2})',
+        'city_only': r'(?:New York|San Francisco|Los Angeles|Chicago|Boston|Seattle|Austin|Denver|Portland|Miami|Atlanta|Houston|Dallas|Philadelphia|Washington DC|London|Berlin|Paris|Amsterdam|Toronto|Vancouver|Sydney|Melbourne|Tokyo)',
+        'country': r'(?:USA|United States|Canada|UK|United Kingdom|Germany|France|Spain|Italy|Netherlands|Sweden|Denmark|Norway|Finland|Australia|New Zealand|Japan|China|India)',
+    }
+    
+    def format_salary_to_k(salary_str):
+        if salary_str == "Not specified":
+            return salary_str
+            
+        # Remove $ and any commas
+        salary = salary_str.replace('$', '').replace(',', '')
+        
+        if '-' in salary:
+            parts = salary.split('-')
+            # Convert each part to K format
+            start = int(parts[0])
+            end = int(parts[1])
+            start_k = f"{start//1000}K" if start >= 1000 else str(start)
+            end_k = f"{end//1000}K" if end >= 1000 else str(end)
+            return f"${start_k}-${end_k}"
+        else:
+            # Single value
+            amount = int(salary)
+            amount_k = f"{amount//1000}K" if amount >= 1000 else str(amount)
+            return f"${amount_k}"
+    
+    def extract_salary(text):
+        # Look for salary patterns with various formats
+        salary_patterns = [
+            r'\$(\d{2,3}(?:,\d{3})*(?:-\d{2,3}(?:,\d{3})*)?(?:k|K)?)',  # $100k-$200k
+            r'(\d{2,3}(?:,\d{3})*(?:-\d{2,3}(?:,\d{3})*)?)\s*(?:k|K)',  # 100k-200k
+            r'(\d{2,3}(?:,\d{3})*(?:-\d{2,3}(?:,\d{3})*)?)\s*(?:USD|usd)',  # 100,000-200,000 USD
+            r'(\d{2,3}(?:,\d{3})*(?:-\d{2,3}(?:,\d{3})*)?)\s*(?:per year|per annum|PA)',  # 100,000-200,000 per year
+        ]
+        
+        for pattern in salary_patterns:
+            matches = re.finditer(pattern, text, re.IGNORECASE)
+            for match in matches:
+                salary = match.group(1)
+                # Convert to standard format
+                if 'k' in salary.lower():
+                    # Remove 'k' and multiply by 1000
+                    salary = salary.replace('k', '').replace('K', '')
+                    if '-' in salary:
+                        parts = salary.split('-')
+                        return f"${int(parts[0])*1000}-${int(parts[1])*1000}"
+                    return f"${int(salary)*1000}"
+                if '-' in salary:
+                    parts = salary.split('-')
+                    return f"${parts[0]}-${parts[1]}"
+                return f"${salary}"
+        
+        return "Not specified"
+    
+    def extract_work_type_and_location(text):
+        # First, extract work arrangement
+        work_type = "Not specified"
+        text_lower = text.lower()
+        
+        if 'remote' in text_lower:
+            work_type = 'Remote'
+        elif 'hybrid' in text_lower:
+            work_type = 'Hybrid'
+        elif 'on-site' in text_lower or 'in-office' in text_lower:
+            work_type = 'On-site'
+        
+        # Extract physical locations
+        locations = []
+        
+        # Extract city and state
+        city_state_matches = re.finditer(patterns['city_state'], text)
+        locations.extend(f"{match.group(1)}, {match.group(2)}" for match in city_state_matches)
+        
+        # Extract standalone cities
+        city_matches = re.finditer(patterns['city_only'], text)
+        locations.extend(match.group(0) for match in city_matches)
+        
+        # Extract country
+        country_match = re.search(patterns['country'], text, re.IGNORECASE)
+        if country_match:
+            locations.append(country_match.group(0))
+        
+        # Return both work type and location
+        location_str = ' | '.join(locations) if locations else "Not specified"
+        return work_type, location_str
+    
+    # Process each job post
+    for post in data["YC"]["2024"]["comments"]:
+        # Initialize default values
+        salary = "Not specified"
+        experience = "Not specified"
+        location = "Not specified"
+        work_type = "Not specified"
+        role_type = "Not specified"
+        
+        # Split post into lines for better parsing
+        lines = post.split('\n')
+        post_text = '\n'.join(lines)
+        
+        # Extract salary from the entire post
+        salary = extract_salary(post_text)
+        if salary != "Not specified":
+            salary = format_salary_to_k(salary)
+        
+        # Extract work type and location
+        work_type, location = extract_work_type_and_location(post_text)
+        
+        # Extract other information
+        for line in lines:
+            line_lower = line.lower()
+            
+            # Experience level
+            exp_match = re.search(patterns['experience'], line_lower)
+            if exp_match:
+                experience = exp_match.group(0).title()
+            
+            # Role type
+            role_match = re.search(patterns['role_type'], line_lower)
+            if role_match:
+                role_type = role_match.group(0).title()
+        
+        # Append extracted information
+        salary_ranges.append(salary)
+        experience_levels.append(experience)
+        locations.append(location)
+        work_types.append(work_type)
+        role_types.append(role_type)
+    
+    # Create DataFrame
+    df = pd.DataFrame({
+        'Salary Range': salary_ranges,
+        'Experience Level': experience_levels,
+        'Location': locations,
+        'Work Type': work_types,
+        'Role Type': role_types
+    })
+    
+    # Save to Excel
+    output_file = Path("2024_Analysis/2024_job_details.xlsx")
+    df.to_excel(output_file, index=False)
+    print(f"Saved job details to: {output_file}")
+    print(f"Total jobs analyzed: {len(df)}")
+
+if __name__ == "__main__":
+    extract_job_details() 
