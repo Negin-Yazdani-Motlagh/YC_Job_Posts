@@ -196,7 +196,7 @@ def remove_remote_from_df(df):
     return df.applymap(lambda x: re.sub(r'\bremote\b', '', x, flags=re.IGNORECASE).strip() if isinstance(x, str) else x)
 
 def main():
-    API_KEY = "AIzaSyCb5V3W9DOzvFuCXW_QYCVz6MGvAropf04"
+    API_KEY = "Google Maps"
     with open("2024_Analysis/2024_job_posts.json", 'r', encoding='utf-8') as f:
         data = json.load(f)
     posts = data["YC"]["2024"]["comments"]
